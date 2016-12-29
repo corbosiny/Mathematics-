@@ -81,6 +81,9 @@ class Matrix():
 
     def __floordiv__(self, b):
         pass
+
+    def __getitem__(self, i):
+        return self.matrix[i]
     
     def transpose(matrix):                                                  #static, returns the transpose of an input matrix
         result = Matrix.zero(matrix.columns, matrix.rows)                   #makes zero matrix of opposite dimensions
@@ -292,27 +295,202 @@ class Matrix():
                 
         return result
 
+    def determinant(self, row = None, matrix = None):
+        if matrix != None:
+            if matrix.rows != matrix.columns:
+                raise ValueError('Matrix must be a square matrix to calculate the determinant')
+            elif matrix.rows == 2:
+                return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
+            else:
+                total = 0
+                for y in range(matrix.columns):
+                    if matrix[row][y] == 0:
+                        continue
+                    newRows = []
+                    for x in range(matrix.rows):
+                        if row == x:
+                            continue
+                        newRow = []
+                        for z in range(matrix.columns):
+                            if z == y:
+                                continue
+                            else:
+                                newRow.append(matrix[x][z])
+                        newRows.append(newRow)
+                    newMatrix = Matrix(newRows)
+                    total += matrix[row][y] * self.determinant(row, newMatrix) * int(math.pow(-1, y))
+                return total
+            
+        if self.rows != self.columns:
+            raise ValueError('Matrix must be a square matrix to calculate the determinant')
+        elif self.rows == 2:
+            return self.matrix[0][0] * self.matrix[1][1] - self.matrix[1][0] * self.matrix[0][1]
+        else:
+            total = 0
+            if row == None:
+                row = 0
+            for y in range(self.columns):
+                if self.matrix[row][y] == 0:
+                    continue
+                newRows = []
+                for x in range(self.rows):
+                    if row == x:
+                        continue
+                    newRow = []
+                    for z in range(self.columns):
+                        if z == y:
+                            continue
+                        else:
+                            newRow.append(self.matrix[x][z])
+                    print(newRow)
+                    newRows.append(newRow)
+                #print()
+                newMatrix = Matrix(newRows)
+                #print("New Matrix: ")
+                #print(newMatrix)
+                total += self.matrix[row][y] * self.determinant(row, newMatrix) * int(math.pow(-1, y))
+                #print("Coefficient: ", self.matrix[row][y])
+                #print("Partial Determinant: ", self.determinant(row, newMatrix))
+                #print("Sign: ", int(math.pow(-1, y)))
+                #print("Total: ", total)
+                print()
+            return total
+
+    def equationSolver(self, solutionsMatrix):
+        if self.rows != solutionsMatrix.rows:
+            raise ValueError("Must be as many solutions as there are equations(Matrix must have equal rows as the solutions matrix)")
+        newMatrix = self.makeCopy()
+        newSolutions = solutionsMatrix.makeCopy()
+
+        for y in range(newMatrix.columns):
+            allZeroes = True
+            print(y)
+            if newMatrix[y][y] == 0:
+                for x in range(1 + y, newMatrix.rows):
+                    if newMatrix[x][y] != 0:
+                        allZeroes = False
+                        print()
+                        print('swapping rows: ', y, x)
+                        print("Preswap: ")
+                        print(newMatrix)
+                        print()
+                        newMatrix = newMatrix.swapRows(y, x)
+                        newSolutions = newSolutions.swapRows(y, x)
+                        print("Post Swap: ")
+                        print(newMatrix)
+                        print()
+                        break;
+            else:
+                allZeroes = False
+                
+            if allZeroes:
+                print('allzeroes')
+                continue
+            
+            for x in range(1 + y, newMatrix.rows):
+                if newMatrix[x][y] != 0:
+                    print('eliminating rows: ', x, y)
+                    print('pre elimination: ')
+                    print(newMatrix)
+                    alpha = newMatrix[x][y] / newMatrix[y][y]
+                    newMatrix = newMatrix.applyRow(y, mul, alpha)
+                    newSolutions = newSolutions.applyRow(y, mul, alpha)
+                    print('post applying gamma:')
+                    print(newMatrix)
+                    newMatrix = newMatrix.rowOp(x,y,sub,0)
+                    newSolutions = newSolutions.rowOp(x, y, sub, 0)
+                    print('post elimination: ')
+                    print(newMatrix)
+                    print('unapplying gamma: ')
+                    newMatrix = newMatrix.applyRow(y, mul, 1 / alpha)
+                    newSolutions = newSolutions.applyRow(y, mul, 1 / alpha)
+                    print(newMatrix)
+                    print('New solutions: ')
+                    print(newSolutions)
+                    print()
+
+        #check for no solutions
+        for x in range(newMatrix.rows):
+            allZeroes = True
+            for y in range(newMatrix.columns):
+                if not Matrix.isZero(newMatrix[x][y]):
+                    allZeroes = False
+                    break;
+            if allZeroes and not Matrix.isZero(newSolutions[x][0]):
+                return newMatrix, 'NO SOLUTION'
+            elif allZeroes and Matrix.isZero(newSolutions[x][0]):                                              #infinite solutions, add in paramtertization
+                return newMatrix, 'INFINITE SOLUTIONS'
+                #parameteritize solution
+            
+        #solve solutions
+        for x in range(newMatrix.rows - 1, -1, -1):
+            print("Row:", x)
+            y = 0
+            while newMatrix[x][y] == 0:
+                y += 1
+                print("First non-zero term:", y)
+            if y != newMatrix.columns - 1:
+                k = y + 1
+                while k < newMatrix.columns:
+                    print('K =', k)
+                    print("Prev solution =", newSolutions[x][0])
+                    print("Subtracting over:", newMatrix[x][k])
+                    newSolutions[x][0] -= newMatrix[x][k]
+                    newMatrix[x][k] = 0
+                    print("New solution =", newSolutions[x][0])
+                    k += 1
+            else:
+                print(y,"is the final member of the array")
+            print('Turning coefficient to one:')
+            num = newMatrix[x][y]
+            newMatrix = newMatrix.applyRow(x, truediv, num)
+            newSolutions = newSolutions.applyRow(x, truediv, num)
+            print(newMatrix)
+            print("Final solution: ", newSolutions[x][0])
+            for z in range(newMatrix.rows):
+                newMatrix[z][y] = newSolutions[x][0] * newMatrix[z][y]
+            print("Post subsituting %d into the matrix: " % newSolutions[x][0])
+            print(newMatrix)
+                
+        return newMatrix, newSolutions
+
+    def isZero(x):
+        return abs(x) < (0 + .001) 
+    
     def __eq__(self, b):
         if not isinstance(b, Matrix):
             return False
         else:
             return self.matrix == b.matrix
-        
+    
     def __str__(self):                                                      #just prints out every row when you try to print the class
         matrixStr = ''
         for x in range(self.rows):
-            matrixStr += str(self.matrix[x])
+            matrixStr += '['
+            for y in range(self.columns):
+                num = self.matrix[x][y]
+                if round(num) - num != 0:
+                    matrixStr += ("%.2f" % float(self.matrix[x][y]))
+                else:
+                    matrixStr += str(int(num))
+                if (y < self.columns - 1):
+                    matrixStr += ', '
+            matrixStr += ']'
             if(x < self.rows - 1):
                 matrixStr += '\n'
         
         return matrixStr
+
+    def __value__(self):
+        return self.matrix
     
 if __name__ == "__main__":
-    matrix = Matrix([[1,2,3],[1,2,3],[3,3,3]])
-    matrix2 = Matrix([[1,1,1], [2,2,2], [3,3,3]])
-    matrix3 = Matrix([[2,1],[3,2]])
-    print(matrix.rowOp(0,2,mul, 0))
-    
-    
-    
+    matrix = Matrix([[1,2,1], [-1,1, 2], [1,1,-1]])
+    matrix2 = Matrix([[1,-1,2, 5], [2, 3,4,2], [7,4,1,3], [2,9,5,4]])
+    matrix3 = matrix2.transpose()
+    solutions = Matrix([[7],[5], [1]])
+    newMatrix, solutions = matrix.equationSolver(solutions)
+    print(newMatrix)
+    print()
+    print(solutions)
     
