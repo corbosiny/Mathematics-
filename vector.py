@@ -87,6 +87,15 @@ class Vector():
             
     def __eq__(self, vec):
         return self.coor == vec.coor
+
+    def __value__(self):
+        return self.coor
+
+    def __iter__(self):
+        return self.coor    
+    
+    def __getitem__(self, key):
+        return self.coor[key]
         
     def __str__(self):
         output = "<"
@@ -98,6 +107,6 @@ class Vector():
 
 
 if __name__ == "__main__":
-    vector1 = Vector([3,4])
-    vector2 = Vector([3,4])
-    print(vector1.crossProduct(vector2))
+    vector1 = Vector([2,0])
+    vector2 = Vector([-.5,0])
+    print(vector1.parallel(vector2))

@@ -397,7 +397,7 @@ class Matrix():
             for z in range(0, x): #going back up through the rows and substituing back in the solution
                 newMatrix[z][y] = newSolutions[x][0] * newMatrix[z][y]
                 
-        return newMatrix, newSolutions
+        return newSolutions
 
     def isZero(x):          #used if we are ever working with small floats that we will just call zero
         return abs(x) < (0 + .001) 
@@ -434,8 +434,6 @@ if __name__ == "__main__":
     matrix2 = Matrix([[200, 100],[100, 200]])
     matrix3 = matrix2.transpose()
     solutions = Matrix([[7],[5], [1]])
-    newMatrix, solutions = matrix.equationSolver(solutions)
-    print(newMatrix)
-    print()
+    solutions = matrix.equationSolver(solutions)
     print(solutions)
     
