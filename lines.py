@@ -1,5 +1,5 @@
 from vector import Vector
-
+import sys
 class Line(): #deals with lines of the form Ax + By = k, then paramaeritizes them in 3D of the form basepoint + t<direction vector> 
 
     def __init__(self, normalVector= [0,0,0], constant = 0, tolerance = .01, dp = 3):
@@ -58,39 +58,7 @@ class Line(): #deals with lines of the form Ax + By = k, then paramaeritizes the
                     return None
                 
             except Exception:
-                newCoor = [0,0,0]
-                if self.normalVector.coor.count(0) == 2 and self.normalVector.coor.count(0) == 2:
-                    index1 = Line.firstNonZero(self.normalVector.coor, self.tolerance)
-                    index2 = Line.firstNonZero(line.normalVector.coor, self.tolerance)
-
-                    if index1 == index2:
-                        return None
-                    
-                    newCoor[index1] = self.constant / self.normalVector.coor[index1]
-                    newCoor[index2] = line.constant / line.normalVector.coor[index2]
-
-                elif self.normalVector.coor.count(0) == 2 and line.normalVector.coor[Line.firstNonZero(self.normalVector.coor, self.tolerance)] != 0:
-                    index1 = Line.firstNonZero(self.normalVector.coor, self.tolerance)
-                    index2 = Line.firstNonZero(line.normalVector.coor, line.tolerance)
-                    while index2 == index1:
-                        index2 = Line.firstNonZero(line.normalVector.coor, line.tolerance)
-
-                    newCoor[index1] = self.constant / self.normalVector.coor[index1]
-                    newCoor[index2] = line.constant - line.normalVector.coor[index1] * newCoor[index1]
-                    
-                elif line.normalVector.coor.count(0) == 2 and self.normalVector.coor[Line.firstNonZero(line.normalVector.coor, line.tolerance)] != 0:
-                    index1 = Line.firstNonZero(line.normalVector.coor, line.tolerance)
-                    index2 = Line.firstNonZero(self.normalVector.coor, self.tolerance)
-                    while index2 == index1:
-                        index2 = Line.firstNonZero(self.normalVector.coor, self.tolerance)
-
-                    newCoor[index1] = line.constant / line.normalVector.coor[index1]
-                    newCoor[index2] = self.constant - self.normalVector.coor[index1] * newCoor[index1]
-                
-                else:
-                    raise Exception('Vectors must be in the same plane')    
-
-                return Vector(newCoor)
+                raise Exception(sys.exc_info()[0])
             
     def __eq__(self, line):
         if not self.normalVector.parallel(line.normalVector):
