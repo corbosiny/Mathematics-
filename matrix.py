@@ -54,7 +54,7 @@ class Matrix():
                 for y in range(b.columns):                               
                     for k in range(self.columns):                                       #adds the products of each respective pair from the first's row and the second's column
                         result.matrix[x][y] += self.matrix[x][k] * b.matrix[k][y]
-        elif isinstance(b, int):
+        elif isinstance(b, int) or isinstance(b, float):
             result = Matrix.zero(self.rows, self.columns)
             for x in range(self.rows):
                 for y in range(self.columns):
@@ -65,10 +65,10 @@ class Matrix():
         return result
 
     def __truediv__(self, b):
-        if isinstance(b, Matrix):
+        if isinstance(b, Matrix):               #if b is a mtrix just multiply by the inverse of that matrix
             result = self * b.inverse()
 
-        elif isinstance(b, int):
+        elif isinstance(b, int) or isinstance(b, float):                #otherwise divide every component of the matrix by the constant
             result = Matrix.zero(self.rows, self.columns)
             for x in range(self.rows):
                 for y in range(self.columns):
@@ -80,7 +80,7 @@ class Matrix():
         return result
 
     def __floordiv__(self, b):
-        pass
+        return self / float(b)
 
     def __getitem__(self, i):
         return self.matrix[i]
@@ -122,7 +122,7 @@ class Matrix():
 
         return result
 
-    def Cholesky(self, ztol=1.0e-5):
+    def Cholesky(self, ztol=1.0e-5):                                #this is and the Cholesky inverse are the only two pieces I did NOT program. Credit to Udacity
         # Computes the upper triangular Cholesky factorization of
         # a positive definite matrix.
         res = Matrix([[]])
@@ -165,30 +165,30 @@ class Matrix():
         result = aux.CholeskyInverse()
         return result
 
-    def apply(self, opcode, operand = None):
+    def apply(self, opcode, operand = None):            #applys a certain operation(opcode) to the entire matrix, uses names from the operator library for this, the operand part is an optional number for stuff like add
         result = Matrix.zero(self.rows, self.columns)
         for x in range(self.rows):
-            for y in range(self.columns):
+            for y in range(self.columns):                                   #going through every row and column
                 if operand:
-                    result.matrix[x][y] = opcode(self.matrix[x][y], operand)
+                    result.matrix[x][y] = opcode(self.matrix[x][y], operand) #the opcode is applied like a function
                 else:
                     result.matrix[x][y] = opcode(self.matrix[x][y])
                     
         return result
 
-    def applyRow(self, rowNum, opcode, operand = None):
+    def applyRow(self, rowNum, opcode, operand = None):  #applys a certain operation to only one row, uses names from the operator library for this
         result = self.makeCopy()
         for y in range(self.columns):
-            if isinstance(operand, list):
+            if isinstance(operand, list):                                           #can also specify a different operand for each specific spot in the list
                 result.matrix[rowNum][y] = opcode(self.matrix[rowNum][y], operand[y])
-            elif operand:
+            elif operand:                                                            #otherwise we just apply the opcode and operand to every spot
                 result.matrix[rowNum][y] = opcode(self.matrix[rowNum][y], operand)
-            else:
-                result.matrix[rowNum][y] = opcode(self.matrix[rowNum][y])
-                
+            else: 
+                result.matrix[rowNum][y] = opcode(self.matrix[rowNum][y])           #or just the opcode
+                        
         return result
 
-    def applyRows(self, rowNums, opcode, operand = None):
+    def applyRows(self, rowNums, opcode, operand = None):       #apply an operation to multiple rows, you have the option of maing operands a list as well
         result = self.makeCopy()
         for index, rowNum in enumerate(rowNums):
             for y in range(self.columns):
@@ -201,25 +201,29 @@ class Matrix():
             
         return result
 
-    def applyRowOps(self, rowNums, opcodes, operands = None):
+    def applyRowOps(self, rowNums, opcodes, operands = None): #apply a list of operations each to its repsective row in row nums, oeprands can also be a list or 2D list
         result = self.makeCopy()
         for index, rowNum in enumerate(rowNums):
             for y in range(self.columns):
                 if isinstance(operands, list):
-                    result.matrix[rowNum][y] = opcodes[index](self.matrix[rowNum][y], operands[index])
+                    if isinstance(operands[index], list):
+                        result.matrix[rowNum][y] = opcodes[index](self.matrix[rowNum][y], operands[index][y])
+                    else:
+                        result.matrix[rowNum][y] = opcodes[index](self.matrix[rowNum][y], operands[index])
                 elif operands:
                     result.matrix[rowNum][y] = opcodes[index](self.matrix[rowNum][y], operands)
                 else:
                     result.matrix[rowNum][y] = opcodes[index](self.matrix[rowNum][y])
                     
         return result
-    
+
+    ###ALL THE APPLYCOLUMNSXXX FUNCTIONS DO THE SAME AS APPLYROWSXXX ABOVE BUT TO COLUMNS, and there is a minor change on how to cycle through columns than rows###
     def applyColumn(self, columnNum, opcode, operand = None):
         result = self.makeCopy()
 
         for x in range(self.rows):
             if isinstance(operand, list):
-                result.matrix[x][columnNum] = opcode(self.matrix[x][columnNum], operand[x])
+                result.matrix[x][columnNum] = opcode(self.matrix[x][columnNum], operand[x]) #here we go down rows instead of columns, columnNum is held constant
             elif operand:
                 result.matrix[x][columnNum] = opcode(self.matrix[x][columnNum], operand)
             else:
@@ -227,6 +231,7 @@ class Matrix():
                 
         return result
 
+    ###ALL THE APPLYCOLUMNSXXX FUNCTIONS DO THE SAME AS APPLYROWSXXX BUT TO COLUMNS, read them above for more info###
     def applyColumns(self, columnNums, opcode, operand = None):
         result = self.makeCopy()
 
@@ -241,6 +246,7 @@ class Matrix():
 
         return result
 
+    ###ALL THE APPLYCOLUMNSXXX FUNCTIONS DO THE SAME AS APPLYROWSXXX BUT TO COLUMNS, read them above for more info###
     def applyColumnOps(self, columnNums, opcodes, operand = None):
         result = self.makeCopy()
 
@@ -255,7 +261,7 @@ class Matrix():
 
         return result
     
-    def swapRows(self, row1, row2):
+    def swapRows(self, row1, row2): #simply swaps two rows
         result = self.makeCopy()
         temp = result.matrix[row1]
         result.matrix[row1] = result.matrix[row2]
@@ -263,13 +269,13 @@ class Matrix():
         
         return result
         
-    def swapColumns(self, column1, column2):
+    def swapColumns(self, column1, column2): #swaps two columns
         result = self.makeCopy()
-        if column1 - column2 == 0:
+        if column1 - column2 == 0: #if the same column num is put in twice we just ignore the swap
             return result
         
         else:
-            for x in range(self.rows):
+            for x in range(self.rows):  #we have to go through each row and swap the repsective numbers from each column
                 temp = result.matrix[x][column1]
                 result.matrix[x][column1] = result.matrix[x][column2]
                 result.matrix[x][column2] = temp
@@ -277,17 +283,17 @@ class Matrix():
         return result
 
 
-    def rowOp(self, row1, row2, opcode, rowSave = 0):                                            #its always row2 acting on row1, Ex: for sub its row1 - row2
-        result = self.makeCopy()
+    def rowOp(self, row1, row2, opcode, rowSave = 0):       #applys an operation element by element between two rowsits always row2 acting on row1, Ex: for sub its row1 - row2
+        result = self.makeCopy()                            #Ex: for sub its row1 - row2
 
-        if rowSave > 1:
+        if rowSave > 1: #if 0 we save over row1, if rowSave is 1 we save over row2
             raise ValueError('rowSave flag  must only be set to zero and one')
         for y in range(self.columns):
             result.matrix[row1 * (1 - rowSave) + row2 * rowSave][y] = opcode(result.matrix[row1][y], result.matrix[row2][y])
 
         return result
     
-    def makeCopy(self):
+    def makeCopy(self): #returns a copy of the current matrix for us to manipulate without changing the current matrix
         result = Matrix.zero(self.rows, self.columns)
         for x in range(self.rows):
             for y in range(self.columns):
@@ -295,122 +301,73 @@ class Matrix():
                 
         return result
 
-    def determinant(self, row = None, matrix = None):
-        if matrix != None:
-            if matrix.rows != matrix.columns:
-                raise ValueError('Matrix must be a square matrix to calculate the determinant')
-            elif matrix.rows == 2:
-                return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
-            else:
-                total = 0
-                for y in range(matrix.columns):
-                    if matrix[row][y] == 0:
-                        continue
-                    newRows = []
-                    for x in range(matrix.rows):
-                        if row == x:
-                            continue
-                        newRow = []
-                        for z in range(matrix.columns):
-                            if z == y:
-                                continue
-                            else:
-                                newRow.append(matrix[x][z])
-                        newRows.append(newRow)
-                    newMatrix = Matrix(newRows)
-                    total += matrix[row][y] * self.determinant(row, newMatrix) * int(math.pow(-1, y))
-                return total
+    def determinant(self, matrix = None, row = 0):       #solves for the determinant of a matrix, uses recursion, row is the row to multip
+        if matrix == None:
+            matrix = self.makeCopy()
             
-        if self.rows != self.columns:
+        if matrix.rows != matrix.columns:
             raise ValueError('Matrix must be a square matrix to calculate the determinant')
-        elif self.rows == 2:
-            return self.matrix[0][0] * self.matrix[1][1] - self.matrix[1][0] * self.matrix[0][1]
-        else:
+        elif matrix.rows == 2:  #if a two by two then use the formula
+            return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
+        else:   #else here is where the recursion comes in
             total = 0
-            if row == None:
-                row = 0
-            for y in range(self.columns):
-                if self.matrix[row][y] == 0:
+            for y in range(matrix.columns):
+                if matrix[row][y] == 0:
                     continue
                 newRows = []
-                for x in range(self.rows):
+                for x in range(matrix.rows): #creates the smaller sub matrix that we must calculate the sub determinant of
                     if row == x:
                         continue
                     newRow = []
-                    for z in range(self.columns):
+                    for z in range(matrix.columns):
                         if z == y:
                             continue
                         else:
-                            newRow.append(self.matrix[x][z])
-                    print(newRow)
+                            newRow.append(matrix[x][z])
                     newRows.append(newRow)
-                #print()
                 newMatrix = Matrix(newRows)
-                #print("New Matrix: ")
-                #print(newMatrix)
-                total += self.matrix[row][y] * self.determinant(row, newMatrix) * int(math.pow(-1, y))
-                #print("Coefficient: ", self.matrix[row][y])
-                #print("Partial Determinant: ", self.determinant(row, newMatrix))
-                #print("Sign: ", int(math.pow(-1, y)))
-                #print("Total: ", total)
-                print()
+                total += matrix[row][y] * self.determinant(newMatrix, row) * int(math.pow(-1, y)) #adds the derivative of the sub matrix times the constant to the total
             return total
 
-    def equationSolver(self, solutionsMatrix):
-        if self.rows != solutionsMatrix.rows:
-            raise ValueError("Must be as many solutions as there are equations(Matrix must have equal rows as the solutions matrix)")
+
+    def reducedRowForm(self, solutionsMatrix): #turns a matrix into reduced row echelon form
         newMatrix = self.makeCopy()
         newSolutions = solutionsMatrix.makeCopy()
 
-        for y in range(newMatrix.columns):
+        for y in range(newMatrix.columns):          #if the colum is all zeroes we can skip it so we check for that
             allZeroes = True
-            print(y)
             if newMatrix[y][y] == 0:
                 for x in range(1 + y, newMatrix.rows):
                     if newMatrix[x][y] != 0:
                         allZeroes = False
-                        print()
-                        print('swapping rows: ', y, x)
-                        print("Preswap: ")
-                        print(newMatrix)
-                        print()
-                        newMatrix = newMatrix.swapRows(y, x)
+                        newMatrix = newMatrix.swapRows(y, x) #we swap the current row with the first row that has a non-zero term in this column
                         newSolutions = newSolutions.swapRows(y, x)
-                        print("Post Swap: ")
-                        print(newMatrix)
-                        print()
                         break;
             else:
                 allZeroes = False
                 
             if allZeroes:
-                print('allzeroes')
                 continue
             
-            for x in range(1 + y, newMatrix.rows):
+            for x in range(1 + y, newMatrix.rows):  #here we clear columns below each pivot variable
                 if newMatrix[x][y] != 0:
-                    print('eliminating rows: ', x, y)
-                    print('pre elimination: ')
-                    print(newMatrix)
-                    alpha = newMatrix[x][y] / newMatrix[y][y]
-                    newMatrix = newMatrix.applyRow(y, mul, alpha)
-                    newSolutions = newSolutions.applyRow(y, mul, alpha)
-                    print('post applying gamma:')
-                    print(newMatrix)
-                    newMatrix = newMatrix.rowOp(x,y,sub,0)
-                    newSolutions = newSolutions.rowOp(x, y, sub, 0)
-                    print('post elimination: ')
-                    print(newMatrix)
-                    print('unapplying gamma: ')
+                    alpha = newMatrix[x][y] / float(newMatrix[y][y]) #alpha is the ratio between the pivot's constant and the other variables constant
+                    newMatrix = newMatrix.applyRow(y, mul, alpha)  #multiply pivots row by alpha to make its constant equal to the other variables
+                    newSolutions = newSolutions.applyRow(y, mul, alpha) #apply to the solutions as well
+                    newMatrix = newMatrix.rowOp(x,y,sub,0)  #subtract the two rows and overwrite the non pivot variable row
+                    newSolutions = newSolutions.rowOp(x, y, sub, 0) #apply to solutions as well
                     newMatrix = newMatrix.applyRow(y, mul, 1 / alpha)
                     newSolutions = newSolutions.applyRow(y, mul, 1 / alpha)
-                    print(newMatrix)
-                    print('New solutions: ')
-                    print(newSolutions)
-                    print()
+            
+        return newMatrix, newSolutions
+
+    def equationSolver(self, solutionsMatrix):      #solves lienar systems of equations
+        if self.rows != solutionsMatrix.rows:
+            raise ValueError("Must be as many solutions as there are equations(Matrix must have equal rows as the solutions matrix)")
+        newMatrix, newSolutions = self.reducedRowForm(solutionsMatrix) #gets it in reduced row echeclon form
 
         #check for no solutions
-        for x in range(newMatrix.rows):
+        for x in range(newMatrix.rows): #if there is a row of all zeroes equal to a constant, no solutions, otherwise infintie solutions
             allZeroes = True
             for y in range(newMatrix.columns):
                 if not Matrix.isZero(newMatrix[x][y]):
@@ -423,41 +380,29 @@ class Matrix():
                 #parameteritize solution
             
         #solve solutions
-        for x in range(newMatrix.rows - 1, -1, -1):
-            print("Row:", x)
+        for x in range(newMatrix.rows - 1, -1, -1): #going backwards through the rows
             y = 0
-            while newMatrix[x][y] == 0:
+            while newMatrix[x][y] == 0: #finding first non zero term
                 y += 1
-                print("First non-zero term:", y)
-            if y != newMatrix.columns - 1:
+            if y != newMatrix.columns - 1:  #going through remaining terms and subtracting them from the solution
                 k = y + 1
-                while k < newMatrix.columns:
-                    print('K =', k)
-                    print("Prev solution =", newSolutions[x][0])
-                    print("Subtracting over:", newMatrix[x][k])
+                while k < newMatrix.columns:    
                     newSolutions[x][0] -= newMatrix[x][k]
                     newMatrix[x][k] = 0
-                    print("New solution =", newSolutions[x][0])
                     k += 1
-            else:
-                print(y,"is the final member of the array")
-            print('Turning coefficient to one:')
-            num = newMatrix[x][y]
-            newMatrix = newMatrix.applyRow(x, truediv, num)
+            
+            num = newMatrix[x][y]   
+            newMatrix = newMatrix.applyRow(x, truediv, num) #dividing through by the varibales constant to set it to one and solve for it
             newSolutions = newSolutions.applyRow(x, truediv, num)
-            print(newMatrix)
-            print("Final solution: ", newSolutions[x][0])
-            for z in range(newMatrix.rows):
+            for z in range(0, x): #going back up through the rows and substituing back in the solution
                 newMatrix[z][y] = newSolutions[x][0] * newMatrix[z][y]
-            print("Post subsituting %d into the matrix: " % newSolutions[x][0])
-            print(newMatrix)
                 
         return newMatrix, newSolutions
 
-    def isZero(x):
+    def isZero(x):          #used if we are ever working with small floats that we will just call zero
         return abs(x) < (0 + .001) 
     
-    def __eq__(self, b):
+    def __eq__(self, b):            #for equality testing between matrices
         if not isinstance(b, Matrix):
             return False
         else:
@@ -481,12 +426,12 @@ class Matrix():
         
         return matrixStr
 
-    def __value__(self):
+    def __value__(self):    #returns the matrix so you dont need to call ###.matrix[][] every time you can just call ###[][]
         return self.matrix
     
 if __name__ == "__main__":
-    matrix = Matrix([[1,2,1], [-1,1, 2], [1,1,-1]])
-    matrix2 = Matrix([[1,-1,2, 5], [2, 3,4,2], [7,4,1,3], [2,9,5,4]])
+    matrix = Matrix([[1,2,1], [-1,1, 2], [1,1,-1]]) #just test code
+    matrix2 = Matrix([[200, 100],[100, 200]])
     matrix3 = matrix2.transpose()
     solutions = Matrix([[7],[5], [1]])
     newMatrix, solutions = matrix.equationSolver(solutions)
