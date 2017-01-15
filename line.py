@@ -34,60 +34,53 @@ class Line(): #deals with lines of the form Ax + By = k, then paramaeritizes the
             return 'INFINITE'
 
         else:
-            try: #otherwise we use our handy dandy matrix solver
-                newMatrix = matrix.Matrix([[self.normalVector[0], self.normalVector[1]], [line.normalVector[0], line.normalVector[1]]])
-                newSolutions = matrix.Matrix([[self.constant], [line.constant]])
-                solutions = newMatrix.equationSolver(newSolutions)
+             #otherwise we use our handy dandy matrix solver
+            newMatrix = matrix.Matrix([[self.normalVector[0], self.normalVector[1]], [line.normalVector[0], line.normalVector[1]]])
+            newSolutions = matrix.Matrix([[self.constant], [line.constant]])
+            newMatrix, solutions = newMatrix.equationSolver(newSolutions)
+            if not isinstance(solutions, str):
                 solutions = [solutions[0][0], solutions[1][0]]
-                return solutions 
+            return solutions 
             
-            except ZeroDivisionError:
-                if self.normalVector == line.normalVector:
-                    return self.normalVector
-                elif self.constant == line.constant:
-                    return Vector()
-                else:
-                    return None
-                
-            except Exception:
-                raise Exception(sys.exc_info()[0])
-
     #everything below is just for scalar operations on the line, easy to understand one line functions
     def __eq__(self, line):
-        if not self.normalVector.parallel(line.normalVector):
-            return False
-
-        return self.basePoint.subVec(line.basePoint).perp(self.normalVector)
+        return self.normalVector[0] / line.normalVector[0] == self.normalVector[1] / line.normalVector[1] == self.constant / line.constant
 
     def __add__(self, b):
         if isinstance(b, int) or isinstance(b, float):
-            return Line(self.normalVector.coor, self.constant + b)
+            return Line(self.normalVector.coor, self.constant + b, self.tolerance, self.dp)
         else:
             raise ValueError("Unsupported operation between Line and %s" % type(b))
 
     def __sub__(self, b):
         if isinstance(b, int) or isinstance(b, float):
-            return Line(self.normalVector.coor, self.constant - b)
+            return Line(self.normalVector.coor, self.constant - b, self.tolerance, self.dp)
         else:
             raise ValueError("Unsupported operation between Line and %s" % type(b))
 
     def __mul__(self, b):
         if isinstance(b, int) or isinstance(b, float):
-            return Line([x * b for x in self.normalVector], self.constant * b)
+            return Line([x * b for x in self.normalVector], self.constant * b, self.tolerance, self.dp)
         else:
             raise ValueError("Unsupported operation between Line and %s" % type(b))
 
     def __truediv__(self, b):
         if isinstance(b, int) or isinstance(b, float):
-            return Line([ x / b for x in self.normalVector], self.constant + b)
+            return Line([ x / b for x in self.normalVector], self.constant + b, self.tolerance, self.dp)
         else:
             raise ValueError("Unsupported operation between Line and %s" % type(b))
 
     def __floordiv__(self, b):
         if isinstance(b, int) or isinstance(b, float):
-            return Line([ x / b for x in self.normalVector], self.constant + b)
+            return Line([ x / b for x in self.normalVector], self.constant + b, self.tolerance, self.dp)
         else:
             raise ValueError("Unsupported operation between Line and %s" % type(b))
+
+    def __iter__(self):
+        return self.normalVector.coor
+    
+    def __getitem__(self, key):
+        return self.normalVector.coor[key]
 
     def firstNonZero(self):
         for index, num in enumerate(self.normalVector.coor[0:2]):
@@ -124,9 +117,8 @@ class Line(): #deals with lines of the form Ax + By = k, then paramaeritizes the
         return msg
 
 if __name__ == "__main__":  #just test code
-    l1 = Line([4.046,2.836], 1.21)
-    lpl = Line([0,7.09], 9.883)
+    l1 = Line([4.046, 2.836], 1.21)
+    lpl = Line([8.172, 4.114], 9.883)
     lpp = Line([-.5,0], 2)
-    l2 = Line([10.115,7.09], 3.025)
-
-    print(l1.intersection(l2))
+    l2 = Line([4.046 * 2, 2.836 * 2], 1.21 * 2)
+    print(l1 == l2)

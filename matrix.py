@@ -82,9 +82,13 @@ class Matrix():
     def __floordiv__(self, b):
         return self / float(b)
 
-    def __getitem__(self, i):
-        return self.matrix[i]
-    
+    def __getitem__(self, key):
+        try:
+            return self.matrix[key]
+        except:
+            print(self)
+            print(key)
+            
     def transpose(matrix):                                                  #static, returns the transpose of an input matrix
         result = Matrix.zero(matrix.columns, matrix.rows)                   #makes zero matrix of opposite dimensions
         for x in range(matrix.rows):                                        #goes through every row and column and sets the mirrored spot in the new matrix to that same value
@@ -397,7 +401,7 @@ class Matrix():
             for z in range(0, x): #going back up through the rows and substituing back in the solution
                 newMatrix[z][y] = newSolutions[x][0] * newMatrix[z][y]
                 
-        return newSolutions
+        return newMatrix, newSolutions
 
     def isZero(x):          #used if we are ever working with small floats that we will just call zero
         return abs(x) < (0 + .001) 
@@ -430,10 +434,9 @@ class Matrix():
         return self.matrix
     
 if __name__ == "__main__":
-    matrix = Matrix([[1,2,1], [-1,1, 2], [1,1,-1]]) #just test code
+    matrix = Matrix([[2,3], [1,7]]) #just test code
     matrix2 = Matrix([[200, 100],[100, 200]])
     matrix3 = matrix2.transpose()
-    solutions = Matrix([[7],[5], [1]])
-    solutions = matrix.equationSolver(solutions)
+    solutions = Matrix([[5], [10]])
+    newMatrix, solutions = matrix.equationSolver(solutions)
     print(solutions)
-    
