@@ -85,9 +85,8 @@ class Matrix():
     def __getitem__(self, key):
         try:
             return self.matrix[key]
-        except:
-            print(self)
-            print(key)
+        except Exception as e:
+            raise Exception(e)
             
     def transpose(matrix):                                                  #static, returns the transpose of an input matrix
         result = Matrix.zero(matrix.columns, matrix.rows)                   #makes zero matrix of opposite dimensions
@@ -305,6 +304,35 @@ class Matrix():
                 
         return result
 
+    def subMatrix(self, rowRange, columnRange): #creates and returns subMatrix of the specified rows and columns
+        newMatrix = Matrix.zero(rowRange[1] - rowRange[0] + 1, columnRange[1] - columnRange[0] + 1)
+        i = 0
+        for x in range(rowRange[0], rowRange[1] + 1):
+            j = 0
+            for y in range(columnRange[0], columnRange[1] + 1):
+                newMatrix[i][j] = self.matrix[x][y]
+                j += 1
+            i += 1
+            
+        return newMatrix
+
+    def where(self, opcode, operand = None): #applys boolean operation to matrix and returns ones where it is satisfied
+        newMatrix = self.makeCopy()
+        newMatrix = newMatrix.apply(opcode, operand)
+        indices = []
+        for i in range(newMatrix.rows):
+            for j in range(newMatrix.columns):
+                if newMatrix[i][j] == 1:
+                    indices.append([i, j])
+        return newMatrix, indices
+
+    def flatten(self): #flattens the matrix, aka puts all elements into a one dimensional list
+        flatList = []
+        for row in self.matrix:
+            for element in row:
+                flatList.append(element)
+        return flatList
+    
     def determinant(self, matrix = None, row = 0):       #solves for the determinant of a matrix, uses recursion, row is the row to multip
         if matrix == None:
             matrix = self.makeCopy()
@@ -411,19 +439,40 @@ class Matrix():
             return False
         else:
             return self.matrix == b.matrix
+
+    def __len__(self):
+        return len(self.matrix)
     
     def __str__(self):                                                      #just prints out every row when you try to print the class
         matrixStr = ''
         for x in range(self.rows):
             matrixStr += '['
             for y in range(self.columns):
-                num = self.matrix[x][y]
-                if round(num) - num != 0:
-                    matrixStr += ("%.2f" % float(self.matrix[x][y]))
+                if isinstance(self.matrix[x][y], list):
+                    matrixStr += '['
+                    for i, elem in enumerate(self.matrix[x][y]):
+                        matrixStr += str(elem)
+                        if i < len(self.matrix[x][y]) - 1:
+                            matrixStr += ', '
+                    matrixStr += ']'
+                    if (y < self.columns - 1):
+                        matrixStr += ', '
+                elif isinstance(self.matrix[x][y], int) or isinstance(self.matrix[x][y], float):
+                    num = self.matrix[x][y]
+                    if num >= 0 and y > 0:
+                        matrixStr += ' '
+                    if round(num) - num != 0:
+                        matrixStr += ("%.2f" % float(self.matrix[x][y]))
+                    else:
+                        matrixStr += str(int(num))
+                    if (y < self.columns - 1):
+                        matrixStr += ', '
                 else:
-                    matrixStr += str(int(num))
-                if (y < self.columns - 1):
-                    matrixStr += ', '
+                    if y > 0:
+                        matrixStr += ' '
+                    matrixStr += str(self.matrix[x][y])
+                    if (y < self.columns - 1):
+                        matrixStr += ', '
             matrixStr += ']'
             if(x < self.rows - 1):
                 matrixStr += '\n'
@@ -434,9 +483,14 @@ class Matrix():
         return self.matrix
     
 if __name__ == "__main__":
-    matrix = Matrix([[2,3], [1,7]]) #just test code
-    matrix2 = Matrix([[200, 100],[100, 200]])
-    matrix3 = matrix2.transpose()
-    solutions = Matrix([[5], [10]])
-    newMatrix, solutions = matrix.equationSolver(solutions)
-    print(solutions)
+    #matrix = Matrix([[2,3], [1,7]]) #just test code
+    #matrix2 = Matrix([[200, 100],[100, 200]])
+    #matrix3 = matrix2.transpose()
+    #solutions = Matrix([[5], [10]])
+    #newMatrix, solutions = matrix.equationSolver(solutions)
+    #print(solutions)
+    matrix4 = Matrix([[1,2,3], [1,2,3], [1,2,3]])
+    matrix, indices = matrix4.where(ge, 2)
+    print(matrix)
+    print()
+    print(indices)
